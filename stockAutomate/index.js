@@ -11,6 +11,8 @@ class StockAutomate {
   #app_column;
   #stocks = [];
   dayEndMillisecond = this.getDayEndMillisecond();
+  #amt_refresh_token;
+  #amt_access_token;
   constructor({ username, password, columno, email }) {
     if (!username) throw new Error("username not provided");
     if (!password) throw new Error("password not provided");
@@ -108,8 +110,8 @@ class StockAutomate {
     console.log(this.#stocks);
     console.log("***********");
   }
-  async getLatestMarketPrice(symbol) {
-    let token = await getToken("MI8JHBAXAQKBLX6TVVANMQJIXZCNPIMF");
+  async getLatestMarketPrice(client_id,symbol) {
+    let token = await getToken(client_id);
     return axios.get(`/marketdata/${symbol}/quotes`, {
       params: {
         apikey: "MI8JHBAXAQKBLX6TVVANMQJIXZCNPIMF"
@@ -119,6 +121,12 @@ class StockAutomate {
       }
     });
   }
+  // async authenticate_ameritrade(links) {
+  //   this.#driver.get(links);
+  // }
+  // getAuthenticationLink(redirect_url, consumer_key) {
+  //   return `https://auth.tdameritrade.com/auth?response_type=code&redirect_uri=${redirect_url}&client_id=${consumer_key}%40AMER.OAUTHAP`;
+  // }
   closeDriver() {
     this.#driver.quit();
   }
