@@ -1,0 +1,30 @@
+{
+  "name": "stockautomate",
+  "version": "1.0.0",
+  "description": "Application to scrape and buy stocks",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthonyfinix/stockAutomate.git"
+  },
+  "keywords": [
+    "stock",
+    "ameritrade",
+    "selenium"
+  ],
+  "author": "Anthony Finix",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anthonyfinix/stockAutomate/issues"
+  },
+  "homepage": "https://github.com/anthonyfinix/stockAutomate#readme",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "dotenv": "^8.2.0",
+    "selenium-webdriver": "^4.0.0-beta.2",
+    "td-ameritrade-auth": "0.0.8"
+  }
+}
