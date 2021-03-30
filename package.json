@@ -4,6 +4,7 @@
   "description": "Application to scrape and buy stocks",
   "main": "index.js",
   "scripts": {
+    "init":"node init.js",
     "start": "node index.js"
   },
   "repository": {

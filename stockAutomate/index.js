@@ -1,6 +1,8 @@
 const axios = require("./axios");
+const path = require("path");
 const { init, getToken } = require("td-ameritrade-auth");
 const { Builder, By, Key, until } = require("selenium-webdriver");
+const chrome = require("selenium-webdriver/chrome");
 class StockAutomate {
   #links = { ...require("./links") };
   #twitter_username;
@@ -11,8 +13,6 @@ class StockAutomate {
   #app_column;
   #stocks = [];
   dayEndMillisecond = this.getDayEndMillisecond();
-  #amt_refresh_token;
-  #amt_access_token;
   constructor({ username, password, columno, email }) {
     if (!username) throw new Error("username not provided");
     if (!password) throw new Error("password not provided");
@@ -41,7 +41,14 @@ class StockAutomate {
     }, this.dayEndMillisecond);
   }
   async setDriver() {
-    this.#driver = await new Builder().forBrowser("chrome").build();
+    let os = process.platform;
+    let chrome_path = path.join(__dirname, `./chromedriver_${os}.exe`);
+    let service = new chrome.ServiceBuilder(chrome_path).build();
+    chrome.setDefaultService(service);
+    this.#driver = new Builder()
+      .forBrowser("chrome")
+      // .setChromeOptions(new chrome.Options().headless())
+      .build();
   }
   async authenticate_twitterdeck() {
     this.#driver.get(this.#links.url);
@@ -107,26 +114,60 @@ class StockAutomate {
   }
   addStocktoDayStack(stock) {
     this.#stocks.push(stock);
-    console.log(this.#stocks);
-    console.log("***********");
   }
-  async getLatestMarketPrice(client_id,symbol) {
+  async getLatestMarketPrice(client_id, symbol) {
     let token = await getToken(client_id);
-    return axios.get(`/marketdata/${symbol}/quotes`, {
+    let response = await axios.get(`/marketdata/${symbol}/quotes`, {
       params: {
-        apikey: "MI8JHBAXAQKBLX6TVVANMQJIXZCNPIMF"
+        apikey: client_id
       },
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
+    if (!!response && response.status === 200) {
+      return response.data;
+    }
   }
-  // async authenticate_ameritrade(links) {
-  //   this.#driver.get(links);
-  // }
-  // getAuthenticationLink(redirect_url, consumer_key) {
-  //   return `https://auth.tdameritrade.com/auth?response_type=code&redirect_uri=${redirect_url}&client_id=${consumer_key}%40AMER.OAUTHAP`;
-  // }
+  async buyStock({
+    symbol,
+    amt_username,
+    quantity,
+    client_id,
+    orderType = "LIMIT",
+    price
+  }) {
+    let token = await getToken(client_id);
+    return axios.post(
+      `/accounts/${amt_username}/quotes`,
+      {
+        complexOrderStrategyType: "NONE",
+        orderType,
+        session: "NORMAL",
+        price,
+        duration: "DAY",
+        orderStrategyType: "SINGLE",
+        orderLegCollection: [
+          {
+            instruction: "BUY_TO_OPEN",
+            quantity,
+            instrument: {
+              symbol,
+              assetType: "STOCK"
+            }
+          }
+        ]
+      },
+      {
+        params: {
+          apikey: client_id
+        },
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+  }
   closeDriver() {
     this.#driver.quit();
   }
